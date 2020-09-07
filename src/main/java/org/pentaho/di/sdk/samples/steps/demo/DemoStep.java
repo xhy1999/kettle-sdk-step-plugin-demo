@@ -52,6 +52,7 @@ public class DemoStep extends BaseStep implements StepInterface {
 
     private List<String> changeColList;
     private Map<String, String> changeStr;
+    private List<String> colNameList;
 
     public DemoStep(StepMeta s, StepDataInterface stepDataInterface, int c, TransMeta t, Trans dis) {
         super(s, stepDataInterface, c, t, dis);
@@ -66,19 +67,20 @@ public class DemoStep extends BaseStep implements StepInterface {
         }
         //在这里添加特定的初始化代码
         String changeColNamesStr = meta.getChangeCol();
+        colNameList = meta.getColNameList();
         changeColList = new ArrayList<>();
         while (StringUtils.isNotBlank(changeColNamesStr)) {
             int i;
             String str;
             if ((i = changeColNamesStr.indexOf(",")) > 0) {
                 str = changeColNamesStr.substring(0, i).trim();
-                if (StringUtils.isNotBlank(str)) {
+                if (StringUtils.isNotBlank(str) && colNameList.contains(str)) {
                     changeColList.add(str);
                 }
                 changeColNamesStr = changeColNamesStr.substring(i + 1);
             } else {
                 str = changeColNamesStr.trim();
-                if (StringUtils.isNotBlank(str)) {
+                if (StringUtils.isNotBlank(str) && colNameList.contains(str)) {
                     changeColList.add(str);
                 }
                 break;
@@ -108,9 +110,24 @@ public class DemoStep extends BaseStep implements StepInterface {
         }
 
         //字符替换的业务逻辑
-        for (int i = 0; i < r.length && r[i] != null; i++) {
-            String str = data.outputRowMeta.getString(r, i);
-            if (changeColList.indexOf((i + 1) + "") >= 0) {
+//        for (int i = 0; i < r.length && r[i] != null; i++) {
+//            String str = data.outputRowMeta.getString(r, i);
+//            if (changeColList.indexOf((i + 1) + "") >= 0) {
+//                Iterator iter = changeStr.entrySet().iterator();
+//                while (iter.hasNext()) {
+//                    Map.Entry entry = (Map.Entry) iter.next();
+//                    Object before = entry.getKey();
+//                    Object after = entry.getValue();
+//                    str = str.replace(String.valueOf(before), String.valueOf(after));
+//                }
+//                r[i] = str.getBytes();
+//            }
+//        }
+        for (int i = 0; i < changeColList.size(); i++) {
+            String changeColName = changeColList.get(i);
+            int index;
+            if ((index = colNameList.indexOf(changeColName)) >= 0) {
+                String str = data.outputRowMeta.getString(r, index);
                 Iterator iter = changeStr.entrySet().iterator();
                 while (iter.hasNext()) {
                     Map.Entry entry = (Map.Entry) iter.next();
@@ -118,7 +135,7 @@ public class DemoStep extends BaseStep implements StepInterface {
                     Object after = entry.getValue();
                     str = str.replace(String.valueOf(before), String.valueOf(after));
                 }
-                r[i] = str.getBytes();
+                r[index] = str.getBytes();
             }
         }
 

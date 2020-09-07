@@ -34,6 +34,9 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -42,9 +45,13 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 
+import javax.swing.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -115,7 +122,7 @@ public class DemoStepDialog extends BaseStepDialog implements StepDialogInterfac
         fdStepname.right = new FormAttachment(100, 0);
         wStepname.setLayoutData(fdStepname);
 
-        changeColLabelText = new LabelText(shell, "需要替换的列号", null);
+        changeColLabelText = new LabelText(shell, "需要替换的列名", null);
         props.setLook(changeColLabelText);
         changeColLabelText.addModifyListener(lsMod);
         FormData fdValName = new FormData();
@@ -186,6 +193,7 @@ public class DemoStepDialog extends BaseStepDialog implements StepDialogInterfac
         changeTableView.optWidth(true);
 
         meta.setChanged(changed);
+        getColNames();
 
         shell.open();
         while (!shell.isDisposed()) {
@@ -211,6 +219,21 @@ public class DemoStepDialog extends BaseStepDialog implements StepDialogInterfac
             changeTableView.setText(val.toString(), 2, row++);
         }
         changeColLabelText.setText(meta.getChangeCol());
+    }
+
+    public void getColNames() {
+        try {
+            RowMetaInterface rowMetaInterface = transMeta.getPrevStepFields(stepname);
+            int num = rowMetaInterface.size();
+            List<String> colList = new ArrayList<>();
+            for (int i = 0; i < num; i++) {
+                ValueMetaInterface v = rowMetaInterface.getValueMeta(i);
+                colList.add(v.getName());
+            }
+            meta.setColNameList(colList);
+        } catch (KettleStepException e) {
+            e.printStackTrace();
+        }
     }
 
     //TODO '取消'方法

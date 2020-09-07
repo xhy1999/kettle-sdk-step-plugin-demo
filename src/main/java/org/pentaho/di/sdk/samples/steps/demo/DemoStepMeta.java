@@ -22,6 +22,7 @@
 
 package org.pentaho.di.sdk.samples.steps.demo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,8 @@ public class DemoStepMeta extends BaseStepMeta implements StepMetaInterface {
     private String changeCol;
     //替换前后的字符
     private Map<String, String> changeStr;
+    //保存元数据列名
+    private List<String> colNameList;
 
     public DemoStepMeta() {
         super();
@@ -100,9 +103,11 @@ public class DemoStepMeta extends BaseStepMeta implements StepMetaInterface {
     public void setDefault() {
         changeStr = new HashMap<>();
         changeStr.put("$", "dollar");
+        changeStr.put("$", "dollar");
         changeStr.put("#", "sharp");
         setChangeStr(changeStr);
         setChangeCol("1,2,3");
+        setColNameList(new ArrayList<>());
     }
 
     public String getChangeCol() {
@@ -121,6 +126,14 @@ public class DemoStepMeta extends BaseStepMeta implements StepMetaInterface {
         this.changeStr = changeStr;
     }
 
+    public List<String> getColNameList() {
+        return colNameList;
+    }
+
+    public void setColNameList(List<String> colNameList) {
+        this.colNameList = colNameList;
+    }
+
     //TODO 复制步骤，必须是深拷贝
     public Object clone() {
         Object retval = super.clone();
@@ -133,6 +146,8 @@ public class DemoStepMeta extends BaseStepMeta implements StepMetaInterface {
         String obj = JSONObject.toJSONString(changeStr);
         xml.append(XMLHandler.addTagValue("changeStr", obj));
         xml.append(XMLHandler.addTagValue("changeCol", changeCol));
+        obj = JSONObject.toJSONString(colNameList);
+        xml.append(XMLHandler.addTagValue("colNameList", obj));
         return xml.toString();
     }
 
@@ -142,6 +157,8 @@ public class DemoStepMeta extends BaseStepMeta implements StepMetaInterface {
             String obj = XMLHandler.getNodeValue(XMLHandler.getSubNode(stepnode, "changeStr"));
             setChangeStr(JSONObject.parseObject(obj, HashMap.class));
             setChangeCol(XMLHandler.getNodeValue(XMLHandler.getSubNode(stepnode, "changeCol")));
+            obj = XMLHandler.getNodeValue(XMLHandler.getSubNode(stepnode, "colNameList"));
+            setColNameList(JSONObject.parseObject(obj, ArrayList.class));
         } catch (Exception e) {
             throw new KettleXMLException("Demo plugin unable to read step info from XML node", e);
         }
